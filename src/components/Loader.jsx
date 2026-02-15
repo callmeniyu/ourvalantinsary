@@ -58,25 +58,34 @@ const Loader = ({ onComplete }) => {
 
     // Trigger progress update after animation duration (approx 1s)
     setTimeout(() => {
-      const newCount = kissCount + 1;
-      setKissCount(newCount);
-      if (newCount === 10) {
-        setShowFinalButton(true);
-      }
-      setNiyasReaction(true);
-      setTimeout(() => setNiyasReaction(false), 300); // Reset reaction
-
-      // Set reaction popup
-      setCurrentReaction({
-        type: newCount === 10 ? 'video' : 'image',
-        src: newCount === 10 ? '/images/loader10.mp4' : `/images/loader${newCount}.jpeg`
-      });
-      setTimeout(() => setCurrentReaction(null), 2000); // Hide after 2s
+      setKissCount((prev) => Math.min(prev + 1, 10));
 
       // Remove heart from state
       setFlyingHearts((prev) => prev.filter(h => h.id !== newHeartId));
     }, 1000);
   };
+
+  useEffect(() => {
+    if (kissCount === 0) return;
+
+    if (kissCount === 10) {
+      setShowFinalButton(true);
+    }
+    setNiyasReaction(true);
+    const reactionTimeout = setTimeout(() => setNiyasReaction(false), 300); // Reset reaction
+
+    // Set reaction popup
+    setCurrentReaction({
+      type: kissCount === 10 ? 'video' : 'image',
+      src: kissCount === 10 ? '/images/loader10.mp4' : `/images/loader${kissCount}.jpeg`
+    });
+    const popupTimeout = setTimeout(() => setCurrentReaction(null), 2000); // Hide after 2s
+
+    return () => {
+      clearTimeout(reactionTimeout);
+      clearTimeout(popupTimeout);
+    };
+  }, [kissCount]);
 
   return (
     <div className="loader-container" style={{
@@ -151,10 +160,9 @@ const Loader = ({ onComplete }) => {
                 zIndex: 50,
                 width: '200px',
                 height: '200px',
-                borderRadius: '10px',
                 overflow: 'hidden',
                 border: '2px solid var(--color-primary)',
-                borderRadius:"50%"
+                borderRadius: "50%"
               }}
             >
               {currentReaction.type === 'image' ? (

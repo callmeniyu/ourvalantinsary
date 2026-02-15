@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Loader from './components/Loader';
-import MusicPlayer from './components/MusicPlayer';
 import Timeline from './components/Timeline';
 import DistanceGame from './components/DistanceGame';
 import Quiz from './components/Quiz';
@@ -9,48 +9,39 @@ import LoveGenerator from './components/LoveGenerator';
 import Finale from './components/Finale';
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [currentSection, setCurrentSection] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const nextSection = () => {
-    setCurrentSection((prev) => prev + 1);
+  // Define the route order for onComplete navigation
+  const routeOrder = ['/', '/timeline', '/distance', '/quiz', '/love', '/finale'];
+
+  const handleComplete = (fromPath = location.pathname) => {
+    const idx = routeOrder.indexOf(fromPath);
+    const next = routeOrder[Math.min(idx + 1, routeOrder.length - 1)];
+    navigate(next);
   };
-
-  const renderSection = () => {
-    switch (currentSection) {
-      case 0:
-        return <Timeline onComplete={nextSection} />;
-      case 1:
-        return <DistanceGame onComplete={nextSection} />;
-      case 2:
-        return <Quiz onComplete={nextSection} />;
-      case 3:
-        return <LoveGenerator onComplete={nextSection} />;
-      case 4:
-        return <Finale />;
-      default:
-        return <Timeline onComplete={nextSection} />;
-    }
-  };
-
-  if (loading) {
-    return <Loader onComplete={() => setLoading(false)} />;
-  }
 
   return (
     <div className="app-container" style={{ position: 'relative', width: '100%', minHeight: '100vh', overflow: 'hidden' }}>
-      <MusicPlayer />
-
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentSection}
+          key={location.pathname}
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -100 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.45 }}
           style={{ width: '100%', height: '100%' }}
         >
-          {renderSection()}
+          <Routes location={location}>
+            <Route path="/" element={<Loader onComplete={() => handleComplete('/')} />} />
+            <Route path="/timeline" element={<Timeline onComplete={() => handleComplete('/timeline')} />} />
+            <Route path="/distance" element={<DistanceGame onComplete={() => handleComplete('/distance')} />} />
+            <Route path="/quiz" element={<Quiz onComplete={() => handleComplete('/quiz')} />} />
+            <Route path="/love" element={<LoveGenerator onComplete={() => handleComplete('/love')} />} />
+            <Route path="/finale" element={<Finale />} />
+            {/* Fallback to loader for unknown routes */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </motion.div>
       </AnimatePresence>
     </div>

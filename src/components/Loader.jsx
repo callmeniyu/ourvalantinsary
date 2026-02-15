@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart } from 'lucide-react';
 
@@ -6,14 +6,50 @@ const Loader = ({ onComplete }) => {
   const [kissCount, setKissCount] = useState(0);
   const [flyingHearts, setFlyingHearts] = useState([]);
   const [niyasReaction, setNiyasReaction] = useState(false);
+  const [currentReaction, setCurrentReaction] = useState(null);
+  const [showFinalButton, setShowFinalButton] = useState(false);
+  const [audioUnmuted, setAudioUnmuted] = useState(false);
+  const audioRef = useRef(null);
+  const kissAudioRef = useRef(null);
+
+  const kissSounds = [
+    '/audios/kiss1.wav',
+    '/audios/kiss2.wav',
+    '/audios/kiss3.wav',
+    '/audios/kiss4.wav',
+    '/audios/kiss5.wav',
+    '/audios/kiss6.wav'
+  ];
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.play().catch(() => {
+        // Autoplay blocked, will play on user interaction
+      });
+    }
+  }, []);
 
   // Character Avatars (using dicebear for cute/cartoon style)
   // Using 'notionists' style for a clean, modern look, or 'micah' for sketchy/hand-drawn feel.
   // Let's go with 'micah' as it's very expressive.
-  const niyasAvatar = "https://api.dicebear.com/9.x/micah/svg?seed=Niyas&backgroundColor=ffdfbf";
-  const shaharAvatar = "https://api.dicebear.com/9.x/micah/svg?seed=Shahar&backgroundColor=ffdfbf";
+  const niyasAvatar = "/images/niyas.jpeg";
+  const shaharAvatar = "/images/shahar.jpeg";
 
   const sendKiss = () => {
+    // Unmute audio on first interaction
+    if (!audioUnmuted && audioRef.current) {
+      audioRef.current.muted = false;
+      setAudioUnmuted(true);
+    }
+
+    // Play kiss sound effect
+    if (kissAudioRef.current) {
+      const randomSound = kissSounds[Math.floor(Math.random() * kissSounds.length)];
+      kissAudioRef.current.src = randomSound;
+      kissAudioRef.current.currentTime = 0; // Reset to start
+      kissAudioRef.current.play();
+    }
+
     // Prevent more clicks than needed (considering active hearts)
     if (kissCount + flyingHearts.length >= 10) return;
 
@@ -22,15 +58,20 @@ const Loader = ({ onComplete }) => {
 
     // Trigger progress update after animation duration (approx 1s)
     setTimeout(() => {
-      setKissCount((prev) => {
-        const newCount = prev + 1;
-        if (newCount >= 10) {
-          setTimeout(onComplete, 500); // Give a little moment after full load
-        }
-        return newCount;
-      });
+      const newCount = kissCount + 1;
+      setKissCount(newCount);
+      if (newCount === 10) {
+        setShowFinalButton(true);
+      }
       setNiyasReaction(true);
       setTimeout(() => setNiyasReaction(false), 300); // Reset reaction
+
+      // Set reaction popup
+      setCurrentReaction({
+        type: newCount === 10 ? 'video' : 'image',
+        src: newCount === 10 ? '/images/loader10.mp4' : `/images/loader${newCount}.jpeg`
+      });
+      setTimeout(() => setCurrentReaction(null), 2000); // Hide after 2s
 
       // Remove heart from state
       setFlyingHearts((prev) => prev.filter(h => h.id !== newHeartId));
@@ -52,22 +93,26 @@ const Loader = ({ onComplete }) => {
       zIndex: 9999,
       fontFamily: 'var(--font-heading)'
     }}>
+      {/* Kiss Me Audio */}
+      <audio ref={audioRef} src="/audios/kissme.mp3" autoPlay loop style={{ display: 'none' }} />      {/* Kiss Sound Effect */}
+      <audio ref={kissAudioRef} src="/audios/kiss.wav" style={{ display: 'none' }} />
       <h2 style={{
         color: 'var(--color-primary)',
         fontSize: '2rem',
         marginBottom: '20px',
         textAlign: 'center'
       }}>
-        {kissCount < 10 ? "Send Kisses to Load! 💋" : "Loaded with Love! ❤️"}
+        Kiss mee!! <br/> Close your eyes🙈
       </h2>
 
-      {/* Characters & Progress Area */}
+      {/* Characters & Progress Area (stacked vertically) */}
       <div style={{
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         width: '100%',
-        maxWidth: '400px',
+        maxWidth: '300px',
         position: 'relative',
         marginBottom: '40px',
         padding: '0 20px'
@@ -77,77 +122,121 @@ const Loader = ({ onComplete }) => {
           animate={niyasReaction ? { scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] } : {}}
           transition={{ duration: 0.3 }}
           style={{
-            width: '80px',
-            height: '80px',
+            width: '120px',
+            height: '120px',
             borderRadius: '50%',
             overflow: 'hidden',
             border: '3px solid var(--color-primary)',
             backgroundColor: 'white',
-            zIndex: 10
+            zIndex: 10,
+            marginBottom: '18px'
           }}
         >
-          <img src={niyasAvatar} alt="Niyas" style={{ width: '100%', height: '100%' }} />
+          <img src={niyasAvatar} alt="Niyas" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </motion.div>
 
-        {/* Progress Bar Track */}
+        {/* Reaction Popup */}
+        <AnimatePresence>
+          {currentReaction && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                position: 'absolute',
+                top: '-50px', // Position above Niyas
+                left: '17%',
+                transform: 'translateX(-50%)',
+                zIndex: 50,
+                width: '200px',
+                height: '200px',
+                borderRadius: '10px',
+                overflow: 'hidden',
+                border: '2px solid var(--color-primary)',
+                borderRadius:"50%"
+              }}
+            >
+              {currentReaction.type === 'image' ? (
+                <img src={currentReaction.src} alt="Reaction" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <video src={currentReaction.src} autoPlay muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Progress Bar Track (vertical) */}
         <div style={{
-          flex: 1,
-          height: '15px',
+          width: '40px',
+          height: '220px',
           backgroundColor: '#e6e6e6',
-          borderRadius: '10px',
-          margin: '0 15px',
+          borderRadius: '12px',
+          margin: '12px 0',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'flex-end',
+          zIndex: 5
         }}>
-          {/* Progress Fill */}
+          {/* Progress Fill (grows upward) */}
           <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${kissCount * 10}%` }}
-            transition={{ type: 'spring', stiffness: 50 }}
+            initial={{ height: 0 }}
+            animate={{ height: `${kissCount * 10}%` }}
+            transition={{ type: 'spring', stiffness: 60 }}
             style={{
-              height: '100%',
+              width: '100%',
               backgroundColor: 'var(--color-primary)',
-              borderRadius: '10px'
+              borderRadius: '12px 12px 0 0',
+              transformOrigin: 'bottom'
             }}
           />
         </div>
 
         {/* Shahar (Right) */}
         <div style={{
-          width: '80px',
-          height: '80px',
+          width: '120px',
+          height: '120px',
           borderRadius: '50%',
           overflow: 'hidden',
           border: '3px solid var(--color-secondary)',
           backgroundColor: 'white',
-          zIndex: 10
+          zIndex: 10,
+          marginTop: '18px'
         }}>
-          <img src={shaharAvatar} alt="Shahar" style={{ width: '100%', height: '100%' }} />
+          <img src={shaharAvatar} alt="Shahar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
 
         {/* Flying Hearts Container (Absolute over the track) */}
         <div style={{
           position: 'absolute',
-          top: '50%',
-          left: '100px', // Roughly start of track
-          right: '100px', // Roughly end of track
-          height: '0px',
-          transform: 'translateY(-50%)',
-          pointerEvents: 'none'
+          left: '50%',
+          top: 0,
+          bottom: 0,
+          width: '40px',
+          transform: 'translateX(-50%)',
+          pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          zIndex: 20
         }}>
           <AnimatePresence>
             {flyingHearts.map((heart) => (
               <motion.div
                 key={heart.id}
-                initial={{ x: '100%', opacity: 1, scale: 0.5 }} // Start at Shahar (Right)
-                animate={{ x: '0%', opacity: 1, scale: 1 }}     // End at Niyas (Left)
+                initial={{ bottom: 8, opacity: 1, scale: 0.6 }} // start near Shahar (bottom)
+                animate={{ bottom: 400, opacity: 1, scale: 1 }}  // move up toward Niyas (top)
                 exit={{ opacity: 0, scale: 1.5 }}
                 transition={{ duration: 1, ease: "easeInOut" }}
                 style={{
                   position: 'absolute',
-                  top: '-15px', // Center vertically relative to container
-                  width: '30px',
-                  height: '30px'
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  bottom: '8px',
+                  width: '32px',
+                  height: '32px',
+                  zIndex: 30
                 }}
               >
                 <Heart fill="var(--color-primary)" color="var(--color-accent)" size={30} />
@@ -158,32 +247,53 @@ const Loader = ({ onComplete }) => {
       </div>
 
       {/* Button */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={sendKiss}
-        disabled={kissCount >= 10}
-        style={{
-          background: kissCount >= 10 ? '#ccc' : 'var(--color-primary)',
-          color: 'white',
-          border: 'none',
-          padding: '15px 40px',
-          borderRadius: '50px',
-          fontSize: '1.2rem',
-          fontWeight: 'bold',
-          cursor: kissCount >= 10 ? 'default' : 'pointer',
-          boxShadow: '0 5px 15px rgba(255, 77, 109, 0.4)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}
-      >
-        {kissCount >= 10 ? "All Loaded! 🚀" : "Send Kiss 💋"}
-      </motion.button>
+      {showFinalButton ? (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onComplete}
+          style={{
+            background: 'var(--color-primary)',
+            color: 'white',
+            border: 'none',
+            padding: '15px 40px',
+            borderRadius: '50px',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            boxShadow: '0 5px 15px rgba(255, 77, 109, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+          Enough kisses? 💋
+        </motion.button>
+      ) : (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={sendKiss}
+          disabled={kissCount >= 10}
+          style={{
+            background: kissCount >= 10 ? '#ccc' : 'var(--color-primary)',
+            color: 'white',
+            border: 'none',
+            padding: '15px 40px',
+            borderRadius: '50px',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            cursor: kissCount >= 10 ? 'default' : 'pointer',
+            boxShadow: '0 5px 15px rgba(255, 77, 109, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+          {kissCount >= 10 ? "All Loaded! 🚀" : "Send Kiss 💋"}
+        </motion.button>
+      )}
 
-      <p style={{ marginTop: '15px', color: '#888', fontFamily: 'var(--font-body)' }}>
-        {kissCount}/10 Kisses sent
-      </p>
     </div>
   );
 };

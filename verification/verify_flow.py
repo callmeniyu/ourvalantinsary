@@ -5,9 +5,22 @@ def run(playwright):
     page = browser.new_page()
     page.goto("http://localhost:5173")
 
-    # 1. Loader (Wait 3s)
+    # 1. Loader (Interactive)
     print("Waiting for loader...")
-    page.wait_for_timeout(3500)
+    page.wait_for_selector('text=Send Kisses to Load! 💋')
+
+    # Click 10 times to fill the bar
+    print("Sending 10 kisses...")
+    for i in range(10):
+        page.click("button:has-text('Send Kiss 💋')")
+        # No need to wait long between clicks, the logic handles queueing
+        page.wait_for_timeout(100)
+
+    # Wait for completion (last animation takes ~1s + 0.5s delay)
+    print("Waiting for loader to complete...")
+    # The text changes to "Loaded with Love! ❤️" before navigating
+    page.wait_for_selector('text=Loaded with Love! ❤️', timeout=10000)
+    page.wait_for_timeout(2000) # Wait for transition to main app
 
     # 2. Timeline
     print("On Timeline. Checking title.")
@@ -33,36 +46,26 @@ def run(playwright):
 
     # Click 20 times (100 -> 0, 5 per click)
     for i in range(21):
-        # We need to click specifically the button.
-        # Sometimes rapid clicks fail if element moves.
-        # We can use force=True if needed, but better to wait.
         page.click("button:has-text('TAP!')", force=True)
         page.wait_for_timeout(50)
 
     # Wait for success message
     print("Waiting for success...")
     page.wait_for_selector('text=Together at Last!', timeout=10000)
-    page.wait_for_timeout(3000) # Wait for transition (2s delay in code)
+    page.wait_for_timeout(3000)
 
     # 4. Quiz
     print("On Quiz.")
-    # Q1: Chicken Rice (Index 1)
     page.wait_for_selector('text=What is our absolute favorite food?')
     page.click("button:has-text('Chicken Rice')")
-    page.wait_for_timeout(2000) # Wait for feedback + delay
+    page.wait_for_timeout(2000)
 
-    # Q2: Bet on Carrom (Index 2)
-    page.wait_for_selector('text=What do we do on Sundays?')
     page.click("button:has-text('Bet on Carrom')")
     page.wait_for_timeout(2000)
 
-    # Q3: Delhi (Index 2)
-    page.wait_for_selector('text=Where did we live together for 30 days?')
     page.click("button:has-text('Delhi')")
     page.wait_for_timeout(2000)
 
-    # Q4: Niyas (Index 1)
-    page.wait_for_selector('text=Who talks more in the relationship?')
     page.click("button:has-text('Niyas')")
     page.wait_for_timeout(2000)
 
@@ -83,10 +86,10 @@ def run(playwright):
     # 6. Finale
     print("On Finale.")
     page.wait_for_selector('text=Happy Anniversary & Valentine\'s!')
-    page.wait_for_timeout(1000) # Wait for hearts
+    page.wait_for_timeout(2000) # Wait for hearts
 
     # Take screenshot
-    page.screenshot(path="verification/verification.png")
+    page.screenshot(path="verification/verification_v2.png")
     print("Screenshot saved.")
 
     browser.close()

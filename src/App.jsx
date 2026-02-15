@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loader from './components/Loader';
 import MusicPlayer from './components/MusicPlayer';
@@ -11,14 +11,6 @@ import Finale from './components/Finale';
 function App() {
   const [loading, setLoading] = useState(true);
   const [currentSection, setCurrentSection] = useState(0);
-
-  useEffect(() => {
-    // Simulate loading time
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
 
   const nextSection = () => {
     setCurrentSection((prev) => prev + 1);
@@ -42,7 +34,7 @@ function App() {
   };
 
   if (loading) {
-    return <Loader />;
+    return <Loader onComplete={() => setLoading(false)} />;
   }
 
   return (

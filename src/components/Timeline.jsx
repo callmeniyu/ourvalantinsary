@@ -1,10 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storyData } from '../data/storyData';
 import { ArrowRight, Heart } from 'lucide-react';
 
 const Timeline = ({ onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const chapter3Ref = useRef(null);
+  const bgmRef = useRef(null);
+
+  useEffect(() => {
+    const audio = chapter3Ref.current;
+    if (!audio) return;
+
+    if (currentIndex === 2) {
+      // Play chapter 3 bgm
+      try {
+        audio.volume = 0.45;
+        audio.currentTime = 0;
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+      } catch (e) {
+        // ignore autoplay errors in some browsers
+      }
+    } else {
+      // Pause when leaving chapter 3
+      audio.pause();
+      try { audio.currentTime = 0; } catch (e) {}
+    }
+
+    return () => {
+      if (audio) {
+        audio.pause();
+        try { audio.currentTime = 0; } catch (e) {}
+      }
+    };
+  }, [currentIndex]);
+
+  // bgm for timeline (all chapters except chapter 3)
+  useEffect(() => {
+    const bgm = bgmRef.current;
+    if (!bgm) return;
+
+    if (currentIndex !== 2) {
+      try {
+        bgm.volume = 0.35;
+        const playPromise = bgm.play();
+        if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+      } catch (e) {
+        // ignore autoplay errors
+      }
+    } else {
+      bgm.pause();
+    }
+
+    return () => {
+      if (bgm) {
+        bgm.pause();
+      }
+    };
+  }, [currentIndex]);
 
   const handleNext = () => {
     if (currentIndex < storyData.length - 1) {
@@ -115,11 +169,15 @@ const Timeline = ({ onComplete }) => {
               cursor: 'pointer'
             }}
           >
-            {currentIndex === storyData.length - 1 ? "Start The Game!" : "Next Chapter"}
+            {currentIndex === storyData.length - 1 ? "Start The Game!" : currentStory.button}
             {currentIndex === storyData.length - 1 ? <Heart size={20} fill="white" /> : <ArrowRight size={20} />}
           </button>
         </motion.div>
       </AnimatePresence>
+      {/* Chapter 3 bgm */}
+      <audio ref={chapter3Ref} src="/audios/chapter3.mp3" loop />
+      {/* Timeline bgm (plays for all chapters except chapter 3) */}
+      <audio ref={bgmRef} src="/audios/timeline.mp3" loop />
     </div>
   );
 };

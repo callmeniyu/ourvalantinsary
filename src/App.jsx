@@ -4,9 +4,10 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import Loader from './components/Loader';
 import HomePage from './components/HomePage';
 import Timeline from './components/Timeline';
-import DistanceGame from './components/DistanceGame';
+import HowToLoveMe from './components/HowToLoveMe';
 import Quiz from './components/Quiz';
 import LoveGenerator from './components/LoveGenerator';
+import Slideshow from './components/Slideshow';
 import Finale from './components/Finale';
 
 function App() {
@@ -30,8 +31,12 @@ function App() {
     if (completedLevelId >= unlockedLevel) {
       setUnlockedLevel(completedLevelId + 1);
     }
-    // Navigate back to home
-    navigate('/home');
+    // Navigate to finale if completing slideshow, else home
+    if (completedLevelId === 5) {
+      navigate('/finale');
+    } else {
+      navigate('/home');
+    }
   };
 
   const handleLoaderComplete = () => {
@@ -58,8 +63,8 @@ function App() {
               element={<Timeline onComplete={() => handleLevelComplete(1)} />}
             />
             <Route
-              path="/distance"
-              element={<DistanceGame onComplete={() => handleLevelComplete(2)} />}
+              path="/how-to-love"
+              element={<HowToLoveMe onComplete={() => handleLevelComplete(2)} />}
             />
             <Route
               path="/quiz"
@@ -68,6 +73,10 @@ function App() {
             <Route
               path="/love"
               element={<LoveGenerator onComplete={() => handleLevelComplete(4)} />}
+            />
+            <Route
+              path="/slideshow"
+              element={<Slideshow onComplete={() => handleLevelComplete(5)} />}
             />
             <Route path="/finale" element={<Finale />} />
 

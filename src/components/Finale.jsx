@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Finale = () => {
   const [hearts, setHearts] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const newHearts = [...Array(20)].map((_, i) => ({
@@ -18,7 +20,7 @@ const Finale = () => {
   }, []);
 
   const handleRestart = () => {
-    window.location.reload();
+    navigate('/home');
   };
 
   return (
@@ -81,7 +83,7 @@ const Finale = () => {
           background: 'white'
         }}>
           <img
-            src="https://placehold.co/400x400/ffccd5/ff4d6d?text=Us+Forever"
+            src="/images/final.png"
             alt="Us"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
@@ -116,7 +118,7 @@ const Finale = () => {
             boxShadow: '0 5px 15px rgba(0,0,0,0.2)'
           }}
         >
-          Watch Again ↺
+          Start over ↺
         </motion.button>
       </motion.div>
     </div>

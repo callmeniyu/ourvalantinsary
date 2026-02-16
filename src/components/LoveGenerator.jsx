@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { reasons } from '../data/storyData';
 import { Heart, Stars } from 'lucide-react';
@@ -6,10 +6,34 @@ import { Heart, Stars } from 'lucide-react';
 const LoveGenerator = ({ onComplete }) => {
   const [currentReason, setCurrentReason] = useState(null);
   const [clickCount, setClickCount] = useState(0);
+  const [reasonIndex, setReasonIndex] = useState(0);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    try {
+      a.volume = 0.45;
+      const playPromise = a.play();
+      if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+    } catch (e) {
+      // ignore autoplay errors
+    }
+
+    return () => {
+      if (a) {
+        a.pause();
+        try { a.currentTime = 0; } catch (e) {}
+      }
+    };
+  }, []);
 
   const generateReason = () => {
-    const randomIndex = Math.floor(Math.random() * reasons.length);
-    setCurrentReason(reasons[randomIndex]);
+    // show next reason in sequence; once we've shown all items, do nothing
+    if (reasonIndex >= reasons.length) return;
+    const idx = reasonIndex;
+    setCurrentReason(reasons[idx]);
+    setReasonIndex((prev) => prev + 1);
     setClickCount((prev) => prev + 1);
   };
 
@@ -114,7 +138,7 @@ const LoveGenerator = ({ onComplete }) => {
         {clickCount === 0 ? "Tell Me Why" : "Another Reason"}
       </motion.button>
 
-      {clickCount >= 3 && (
+      {reasonIndex >= reasons.length && (
         <motion.button
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -131,9 +155,11 @@ const LoveGenerator = ({ onComplete }) => {
             marginTop: '20px'
           }}
         >
-          Is that all? (Go to Finale)
+          I love u for NO REASON
         </motion.button>
       )}
+      {/* LoveGenerator bgm */}
+      <audio ref={audioRef} src="/audios/lovegenerator.mp3" loop />
     </div>
   );
 };

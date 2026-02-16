@@ -32,7 +32,7 @@ export const storyData = [
   {
     id: "kiss",
     title: "The First Kiss",
-    text: "Bus to Bengaluru. Dark. Quiet. Everyone asleep. The tension was real. I told myself I wouldn't kiss you unless you did it first. And then... you did. Liplocked all the way to Bangalore. Best. Trip. Ever. 💋",
+    text: "Bus to Bengaluru. Dark. Quiet. Everyone asleep. The tension was real. I told myself I wouldn't kiss you unless you did it first. And then... you did. Liplocked all the way to Bangalore. Best. Ever. 💋",
     image: "/images/chapter5.gif",
     button: "Chill in my veins😙"
   },
@@ -46,14 +46,14 @@ export const storyData = [
   {
     id: "delhi",
     title: "Delhi Diaries",
-    text: "30 days of living together in Delhi. Cooking, cleaning, sleeping, bathing... just us against the world. Domestic bliss at its finest. 🏠✨",
+    text: "30 days of living together in Delhi. Cooking, cleaning, sleeping, bathing... just us against the world.",
     image: "/images/chapter7.gif",
     button: "Literally in a dream ✨"
   },
   {
     id: "routines",
     title: "Our Simple Joys",
-    text: "Tea and Baji in the canteen. Betting on Carrom games on Sundays (I usually win, right?). And of course, eating Chicken Rice 90% of the time. You're quiet, I'm loud, but it works. 🍗🎱",
+    text: "Tea and Baji in the canteen. Betting on Carrom games on Sundays (I usually win, right?). And of course, eating Chicken Rice 90% of the time.",
     image: "https://placehold.co/600x400/ff4d6d/white?text=Chicken+Rice+&+Carrom",
   },
   {
